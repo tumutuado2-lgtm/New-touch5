@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">New Touch</string>
+    <string name="service_desc">Permite que o New Touch mantenha um toque contínuo na tela (Arraste Contínuo). Ele não lê o conteúdo da tela, não coleta dados e não usa internet.</string>
+</resources>
