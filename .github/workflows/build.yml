@@ -1,0 +1,62 @@
+name: Build New Touch APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      # Primeira instalação: se você enviou new-touch.zip pelo celular, extrai o projeto aqui.
+      - name: Extrair new-touch.zip (se existir)
+        run: |
+          if [ -f new-touch.zip ]; then
+            unzip -o new-touch.zip
+            rm new-touch.zip
+            git config user.name "github-actions"
+            git config user.email "github-actions@users.noreply.github.com"
+            git add -A
+            git commit -m "Adiciona projeto New Touch"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
+
+      - name: Instalar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Instalar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Compilar APK
+        run: gradle assembleDebug --no-daemon --stacktrace
+
+      - name: Preparar APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk New-Touch.apk
+
+      - name: Guardar APK como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: New-Touch-APK
+          path: New-Touch.apk
+
+      - name: Publicar na aba Releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v1.0.${{ github.run_number }}"
+          gh release create "$TAG" New-Touch.apk \
+            --title "New Touch $TAG" \
+            --notes "APK instalável do New Touch (build automático #${{ github.run_number }})."
+            
